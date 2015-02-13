@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Bloc. All rights reserved.
 //
 
+#import <Foundation/Foundation.h>
 #import "ViewController.h"
 
 @interface ViewController ()

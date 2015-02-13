@@ -7,9 +7,12 @@
 //
 
 #import "ImagesTableViewController.h"
+#import "DataSource.h"
+#import "Media.h"
+#import "User.h"
+#import "Comment.h"
 
 @interface ImagesTableViewController () // which delegates should this conform to?
-
 @end
 
 @implementation ImagesTableViewController
@@ -18,7 +21,7 @@
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
-        self.images = [NSMutableArray array];
+        // self.images = [NSMutableArray array];
     }
     return self;
 }
@@ -26,13 +29,13 @@
 - (void)viewDidLoad {  // load our 10 jpgs in the array
     [super viewDidLoad];
     
-    for (int i = 1; i <= 10; i++) {
-        NSString *imageName = [NSString stringWithFormat:@"%d.jpg", i];
-        UIImage *image = [UIImage imageNamed:imageName];
-        if (image) {
-            [self.images addObject:image];
-        }
-    }
+    //for (int i = 1; i <= 10; i++) {
+    //    NSString *imageName = [NSString stringWithFormat:@"%d.jpg", i];
+    //    UIImage *image = [UIImage imageNamed:imageName];
+    //    if (image) {
+    //       [self.images addObject:image];
+    //    }
+    //}
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"imageCell"];
     
@@ -51,7 +54,8 @@
 #pragma mark - Table view data source
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.images.count;   // make all methods generic
+//    return self.images.count;   // make all methods generic
+    return [DataSource sharedInstance].mediaItems.count;
 }
 
 
@@ -76,15 +80,20 @@
         [cell.contentView addSubview:imageView];
     }
     
-    UIImage *image = self.images[indexPath.row];
-    imageView.image = image;
-    
+//    UIImage *image = self.images[indexPath.row];
+//    imageView.image = image;
+    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+    imageView.image = item.image;
     return cell;
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  { // to return height wrt width of image
-    UIImage *image = self.images[indexPath.row];
+//    UIImage *image = self.images[indexPath.row];
+    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+    UIImage *image = item.image;
+
     return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
+//    return image.size.height / image.size.width * CGRectGetWidth(self.view.frame);
 }
 
 
@@ -103,13 +112,11 @@
     // first remove image
     [self.images removeObjectAtIndex:indexPath.row];
     // then remove cell
-    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }
-}
     else if (editingStyle == UITableViewCellEditingStyleInsert) {
     }
-}
-
+    } }
 
 /*
 // Override to support rearranging the table view.
