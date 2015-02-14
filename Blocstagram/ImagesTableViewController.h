@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface ImagesTableViewController : UITableViewController
-@property (nonatomic, strong) NSMutableArray *images;  // should this be deleted cuz we want to remove old images property?
+@property (nonatomic, strong) NSMutableArray *items;
 @end

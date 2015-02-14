@@ -12,7 +12,7 @@
 #import "User.h"
 #import "Comment.h"
 
-@interface ImagesTableViewController () // which delegates should this conform to?
+@interface ImagesTableViewController ()
 @end
 
 @implementation ImagesTableViewController
@@ -53,9 +53,16 @@
 
 #pragma mark - Table view data source
 
+
+- (NSArray *)items {
+    return [DataSource sharedInstance].mediaItems;
+}
+
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 //    return self.images.count;   // make all methods generic
-    return [DataSource sharedInstance].mediaItems.count;
+//    return [DataSource sharedInstance].mediaItems.count;
+    return [self items].count;
 }
 
 
@@ -82,14 +89,16 @@
     
 //    UIImage *image = self.images[indexPath.row];
 //    imageView.image = image;
-    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+//    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+    Media *item = [self items][indexPath.row];
     imageView.image = item.image;
     return cell;
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  { // to return height wrt width of image
 //    UIImage *image = self.images[indexPath.row];
-    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+//    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+    Media *item = [self items][indexPath.row];
     UIImage *image = item.image;
 
     return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
@@ -108,16 +117,16 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
 
-    if (indexPath.row < [self.images count]) {
     // first remove image
-    [self.images removeObjectAtIndex:indexPath.row];
+    [self.items removeObjectAtIndex:indexPath.row];
     // then remove cell
     [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }
     else if (editingStyle == UITableViewCellEditingStyleInsert) {
     }
-    } }
-
+}
+        
+        
 /*
 // Override to support rearranging the table view.
 - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {

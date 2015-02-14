@@ -15,6 +15,7 @@
 @end
 
 @implementation DataSource
+
 + (instancetype) sharedInstance {   // only run once
     static dispatch_once_t once;   // stores completion staus of dispatch_once
     static id sharedInstance;    // stores created shared instance

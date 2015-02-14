@@ -11,4 +11,5 @@
 @interface DataSource : NSObject
 +(instancetype) sharedInstance;
 @property (nonatomic, strong, readonly) NSArray *mediaItems; // readonly= can't modify by other classes
+
 @end
