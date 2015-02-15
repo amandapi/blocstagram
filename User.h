@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h> 
-#import <UIKit/UIKit.h>  // added to accommodate UIImage
+#import <UIKit/UIKit.h> 
 
 @interface User : NSObject
 @property (nonatomic, strong) NSString *idNumber;

@@ -11,6 +11,7 @@
 #import "Media.h"
 #import "User.h"
 #import "Comment.h"
+#import "MediaTableViewCell.h"
 
 @interface ImagesTableViewController ()
 @end
@@ -21,23 +22,14 @@
     self = [super initWithStyle:style];
     if (self) {
         // Custom initialization
-        // self.images = [NSMutableArray array];
     }
     return self;
 }
 
 - (void)viewDidLoad {  // load our 10 jpgs in the array
     [super viewDidLoad];
-    
-    //for (int i = 1; i <= 10; i++) {
-    //    NSString *imageName = [NSString stringWithFormat:@"%d.jpg", i];
-    //    UIImage *image = [UIImage imageNamed:imageName];
-    //    if (image) {
-    //       [self.images addObject:image];
-    //    }
-    //}
-    
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"imageCell"];
+
+    [self.tableView registerClass:[MediaTableViewCell class] forCellReuseIdentifier:@"mediaCell"];
     
     // Uncomment the following line to preserve selection between presentations.
     self.clearsSelectionOnViewWillAppear = NO;
@@ -60,49 +52,24 @@
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-//    return self.images.count;   // make all methods generic
-//    return [DataSource sharedInstance].mediaItems.count;
+
     return [self items].count;
 }
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
-    // compare identifier "imageCell" w tableview cells
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"imageCell" forIndexPath:indexPath];
-    
-    // Configure the cell...
-    static NSInteger imageViewTag = 1234;  // for quick recall
-    UIImageView *imageView = (UIImageView*)[cell.contentView viewWithTag:imageViewTag];
-    
-    if (!imageView) {
-        // This is a new cell, it doesn't have an image view yet
-        imageView = [[UIImageView alloc] init];
-        imageView.contentMode = UIViewContentModeScaleToFill;
-        
-        imageView.frame = cell.contentView.bounds; // image takes whole cell
-        imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth; // height n width proportionally stretched
-        
-        imageView.tag = imageViewTag;  // set tag then add to contentView
-        [cell.contentView addSubview:imageView];
-    }
-    
-//    UIImage *image = self.images[indexPath.row];
-//    imageView.image = image;
-//    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
-    Media *item = [self items][indexPath.row];
-    imageView.image = item.image;
+    MediaTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"mediaCell" forIndexPath:indexPath];
+    cell.mediaItem = [DataSource sharedInstance].mediaItems[indexPath.row];
     return cell;
 }
 
-- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  { // to return height wrt width of image
-//    UIImage *image = self.images[indexPath.row];
-//    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  {
+
     Media *item = [self items][indexPath.row];
     UIImage *image = item.image;
 
-    return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
-//    return image.size.height / image.size.width * CGRectGetWidth(self.view.frame);
+    return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
 }
 
 

@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>  // Added to accommodate UIImage
+#import <UIKit/UIKit.h>  
 
 @class User;
 @interface Media : NSObject
