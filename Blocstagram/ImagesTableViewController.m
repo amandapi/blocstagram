@@ -81,8 +81,8 @@
        // keep ratio: pictureHeight / pictureWidth = cellHeight / screenWidth
        // or  cellHeight = (screenWidth / pictureWidth) * pictureHeight
    return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
-
-  }
+//    return [MediaTableViewCell heightForMediaItem:item width:CGRectGetWidth(self.view.frame)];
+}
 
 
 // Override to support conditional editing of the table view.
@@ -101,7 +101,6 @@
             [[DataSource sharedInstance] deleteMediaItem:item];
         }
 }
-
 
 
 #pragma mark - Key/Value Observing

@@ -9,7 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 @class Media;
+
 @interface MediaTableViewCell : UITableViewCell
+
 @property (nonatomic, strong) Media *mediaItem;
 @property (nonatomic, strong) UIImageView *mediaImageView;
 @property (nonatomic, strong) UILabel *usernameAndCaptionLabel;

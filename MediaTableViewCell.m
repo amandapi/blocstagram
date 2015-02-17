@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Bloc. All rights reserved.
 //
 
+
 #import "MediaTableViewCell.h"
 #import "Media.h"
 #import "Comment.h"
@@ -19,6 +20,7 @@ static UIColor *linkColor;
 static NSParagraphStyle *paragraphStyle;
 
 @implementation MediaTableViewCell
+
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
@@ -34,15 +36,16 @@ static NSParagraphStyle *paragraphStyle;
              view.translatesAutoresizingMaskIntoConstraints = NO;
         }
         
+        // define dictionary for using tricks
         NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel);
         
-        // _mediaImageView should exactly match width of superview
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView]|"
+        // _mediaImageView and -commentLabel takes up H-width of superview with equal widths
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView(==_commentLabel)][_commentLabel]|"
                     options:kNilOptions
                     metrics:nil
                     views:viewDictionary]];
        
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel]|"
+ /*       [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel]|"
                     options:kNilOptions
                     metrics:nil
                     views:viewDictionary]];
@@ -51,21 +54,22 @@ static NSParagraphStyle *paragraphStyle;
                     options:kNilOptions
                     metrics:nil
                     views:viewDictionary]];
+*/
         
-        // V = the 3 views stacked vertically
-        // H = text on the image
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_mediaImageView][_usernameAndCaptionLabel][_commentLabel]"
+        // [_commentLabel][_usernameAndCaptionLabel] placed vertically
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_commentLabel][_usernameAndCaptionLabel]|"
                     options:kNilOptions
                     metrics:nil
                     views:viewDictionary]];
         
         // Height constraints: height=(nil*1)+100
-        
+
+        //
         self.imageHeightConstraint = [NSLayoutConstraint constraintWithItem:_mediaImageView
                     attribute:NSLayoutAttributeHeight
                     relatedBy:NSLayoutRelationEqual
-                    toItem:nil
-                    attribute:NSLayoutAttributeNotAnAttribute
+                    toItem:self.contentView
+                    attribute:NSLayoutAttributeWidth
                     multiplier:1
                     constant:100];
         
@@ -73,7 +77,7 @@ static NSParagraphStyle *paragraphStyle;
                     attribute:NSLayoutAttributeHeight
                     relatedBy:NSLayoutRelationEqual
                     toItem:nil
-                    attribute:NSLayoutAttributeNotAnAttribute
+                    attribute:NSLayoutAttributeWidth
                     multiplier:1
                     constant:100];
 
