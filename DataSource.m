@@ -48,8 +48,8 @@
         if (image) {    // create media model
             Media *media = [[Media alloc] init];
             media.user = [self randomUser];  // attached random user
-            media.image = image;
-            
+             media.image = image;
+            //media.caption = [self randomSentenceWithMaximumNumberOfWords:7]; // method deleted in "Connecting to Instagram"
             NSUInteger commentCount = arc4random_uniform(10); // attached random num between 0 and 10
             NSMutableArray *randomComments = [NSMutableArray array];
             
@@ -85,14 +85,11 @@
     comment.from = [self randomUser];
     
     NSUInteger wordCount = arc4random_uniform(20);
-    
     NSMutableString *randomSentence = [[NSMutableString alloc] init];
-    
     for (int i  = 0; i <= wordCount; i++) {
         NSString *randomWord = [self randomStringOfLength:arc4random_uniform(12)];
         [randomSentence appendFormat:@"%@ ", randomWord];
     }
-    
     comment.text = randomSentence;
     
     return comment;
@@ -149,7 +146,7 @@
         Media *media = [[Media alloc] init];
         media.user = [self randomUser];
         media.image = [UIImage imageNamed:@"10.jpg"];
-//        media.caption = [self randomSentenceWithMaximumNumberOfWords:7];
+//        media.caption = [self randomSentenceWithMaximumNumberOfWords:7]; // method deleted in "Connecting to Instagram"
         
         NSMutableArray *mutableArrayWithKVO = [self mutableArrayValueForKey:@"mediaItems"];
         [mutableArrayWithKVO insertObject:media atIndex:0];
@@ -168,7 +165,7 @@
         Media *media = [[Media alloc] init];
         media.user = [self randomUser];
         media.image = [UIImage imageNamed:@"1.jpg"];
-        // media.caption = [self randomSentenceWithMaximumNumberOfWords:7];
+        // media.caption = [self randomSentenceWithMaximumNumberOfWords:7]; // method deleted in "Connecting to Instagram"
         
         NSMutableArray *mutableArrayWithKVO = [self mutableArrayValueForKey:@"mediaItems"];
         [mutableArrayWithKVO addObject:media];

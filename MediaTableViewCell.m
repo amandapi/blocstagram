@@ -12,6 +12,19 @@
 #import "Comment.h"
 #import "User.h"
 
+@interface MediaTableViewCell ()  { // access modifier to accomoodate the @properties
+    Media* _mediaItem;
+}
+
+@property (nonatomic, strong) UIImageView *mediaImageView;
+@property (nonatomic, strong) UILabel *usernameAndCaptionLabel;
+@property (nonatomic, strong) UILabel *commentLabel;
+@property (nonatomic, strong) NSLayoutConstraint *imageHeightConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *usernameAndCaptionLabelHeightConstraint;
+@property (nonatomic, strong) NSLayoutConstraint *commentLabelHeightConstraint;
+
+@end
+
 static UIFont *lightFont;
 static UIFont *boldFont;
 static UIColor *usernameLabelGray;
@@ -20,6 +33,23 @@ static UIColor *linkColor;
 static NSParagraphStyle *paragraphStyle;
 
 @implementation MediaTableViewCell
+
+
++ (void)load {
+    lightFont = [UIFont fontWithName:@"HelveticaNeue-Thin" size:11];
+    boldFont = [UIFont fontWithName:@"HelveticaNeue-Bold" size:11];
+    usernameLabelGray = [UIColor colorWithRed:0.933 green:0.933 blue:0.933 alpha:1]; /*#eeeeee*/
+    commentLabelGray = [UIColor colorWithRed:0.898 green:0.898 blue:0.898 alpha:1]; /*#e5e5e5*/
+    linkColor = [UIColor colorWithRed:0.345 green:0.314 blue:0.427 alpha:1]; /*#58506d*/
+    
+    NSMutableParagraphStyle *mutableParagraphStyle = [[NSMutableParagraphStyle alloc] init];
+    mutableParagraphStyle.headIndent = 20.0;
+    mutableParagraphStyle.firstLineHeadIndent = 20.0;
+    mutableParagraphStyle.tailIndent = -20.0;
+    mutableParagraphStyle.paragraphSpacingBefore = 5;
+    
+    paragraphStyle = mutableParagraphStyle;
+}
 
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
@@ -39,55 +69,52 @@ static NSParagraphStyle *paragraphStyle;
         // define dictionary for using tricks
         NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel);
         
-        // _mediaImageView and -commentLabel takes up H-width of superview with equal widths
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView(==_commentLabel)][_commentLabel]|"
-                    options:kNilOptions
-                    metrics:nil
-                    views:viewDictionary]];
-       
- /*       [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel]|"
-                    options:kNilOptions
-                    metrics:nil
-                    views:viewDictionary]];
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView]|"
+                      options:kNilOptions
+                      metrics:nil
+                      views:viewDictionary]];
+        
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel]|"
+                      options:kNilOptions
+                      metrics:nil
+                      views:viewDictionary]];
         
         [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_commentLabel]|"
-                    options:kNilOptions
-                    metrics:nil
-                    views:viewDictionary]];
-*/
+                      options:kNilOptions
+                      metrics:nil
+                      views:viewDictionary]];
         
-        // [_commentLabel][_usernameAndCaptionLabel] placed vertically
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_commentLabel][_usernameAndCaptionLabel]|"
-                    options:kNilOptions
-                    metrics:nil
-                    views:viewDictionary]];
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_mediaImageView][_usernameAndCaptionLabel][_commentLabel]"
+                      options:kNilOptions
+                      metrics:nil
+                      views:viewDictionary]];
         
         // Height constraints: height=(nil*1)+100
 
-        //
         self.imageHeightConstraint = [NSLayoutConstraint constraintWithItem:_mediaImageView
-                    attribute:NSLayoutAttributeHeight
-                    relatedBy:NSLayoutRelationEqual
-                    toItem:self.contentView
-                    attribute:NSLayoutAttributeWidth
-                    multiplier:1
-                    constant:100];
+                      attribute:NSLayoutAttributeHeight
+                      relatedBy:NSLayoutRelationEqual
+                      toItem:nil
+                      attribute:NSLayoutAttributeNotAnAttribute
+                      multiplier:1
+                      constant:100];
+        
         
         self.usernameAndCaptionLabelHeightConstraint = [NSLayoutConstraint constraintWithItem:_usernameAndCaptionLabel
-                    attribute:NSLayoutAttributeHeight
-                    relatedBy:NSLayoutRelationEqual
-                    toItem:nil
-                    attribute:NSLayoutAttributeWidth
-                    multiplier:1
-                    constant:100];
-
+                      attribute:NSLayoutAttributeHeight
+                      relatedBy:NSLayoutRelationEqual
+                      toItem:nil
+                      attribute:NSLayoutAttributeNotAnAttribute
+                      multiplier:1
+                      constant:100];
+        
         self.commentLabelHeightConstraint = [NSLayoutConstraint constraintWithItem:_commentLabel
-                    attribute:NSLayoutAttributeHeight
-                    relatedBy:NSLayoutRelationEqual
-                    toItem:nil
-                    attribute:NSLayoutAttributeNotAnAttribute
-                    multiplier:1
-                    constant:100];
+                      attribute:NSLayoutAttributeHeight
+                      relatedBy:NSLayoutRelationEqual
+                      toItem:nil
+                      attribute:NSLayoutAttributeNotAnAttribute
+                      multiplier:1
+                      constant:100];
         
         [self.contentView addConstraints:@[self.imageHeightConstraint, self.usernameAndCaptionLabelHeightConstraint, self.commentLabelHeightConstraint]];
         
@@ -96,21 +123,22 @@ static NSParagraphStyle *paragraphStyle;
 }
 
 
-+ (void)load {
-    lightFont = [UIFont fontWithName:@"HelveticaNeue-Thin" size:11];
-    boldFont = [UIFont fontWithName:@"HelveticaNeue-Bold" size:11];
-    usernameLabelGray = [UIColor colorWithRed:0.933 green:0.933 blue:0.933 alpha:1]; /*#eeeeee*/
-    commentLabelGray = [UIColor colorWithRed:0.898 green:0.898 blue:0.898 alpha:1]; /*#e5e5e5*/
-    linkColor = [UIColor colorWithRed:0.345 green:0.314 blue:0.427 alpha:1]; /*#58506d*/
+
+- (void) layoutSubviews {
+    [super layoutSubviews];
     
-    NSMutableParagraphStyle *mutableParagraphStyle = [[NSMutableParagraphStyle alloc] init];
-    mutableParagraphStyle.headIndent = 20.0;
-    mutableParagraphStyle.firstLineHeadIndent = 20.0;
-    mutableParagraphStyle.tailIndent = -20.0;
-    mutableParagraphStyle.paragraphSpacingBefore = 5;
+    // Before layout, calculate the intrinsic size of the labels (the size they "want" to be), and add 20 to the height for some vertical padding.
+    CGSize maxSize = CGSizeMake(CGRectGetWidth(self.bounds), CGFLOAT_MAX);
+    CGSize usernameLabelSize = [self.usernameAndCaptionLabel sizeThatFits:maxSize];
+    CGSize commentLabelSize = [self.commentLabel sizeThatFits:maxSize];
     
-    paragraphStyle = mutableParagraphStyle;
+    self.usernameAndCaptionLabelHeightConstraint.constant = usernameLabelSize.height + 20;
+    self.commentLabelHeightConstraint.constant = commentLabelSize.height + 20;
+    
+    // Hide the line between cells
+    self.separatorInset = UIEdgeInsetsMake(0, 0, 0, CGRectGetWidth(self.bounds));
 }
+
 
 
 - (NSAttributedString *) usernameAndCaptionString {
@@ -152,38 +180,23 @@ static NSParagraphStyle *paragraphStyle;
 }
 
 
-- (void) layoutSubviews {
-    [super layoutSubviews];
-    
-    // Before layout, calculate the intrinsic size of the labels (the size they "want" to be), and add 20 to the height for some vertical padding.
-    CGSize maxSize = CGSizeMake(CGRectGetWidth(self.bounds), CGFLOAT_MAX);
-    CGSize usernameLabelSize = [self.usernameAndCaptionLabel sizeThatFits:maxSize];
-    CGSize commentLabelSize = [self.commentLabel sizeThatFits:maxSize];
-    
-    self.usernameAndCaptionLabelHeightConstraint.constant = usernameLabelSize.height + 20;
-    self.commentLabelHeightConstraint.constant = commentLabelSize.height + 20;
-    
-    // Hide the line between cells
-    self.separatorInset = UIEdgeInsetsMake(0, 0, 0, CGRectGetWidth(self.bounds));
-}
-
-
 - (void) setMediaItem:(Media *)mediaItem {
     _mediaItem = mediaItem;
     self.mediaImageView.image = _mediaItem.image;
     self.usernameAndCaptionLabel.attributedText = [self usernameAndCaptionString];
     self.commentLabel.attributedText = [self commentString];
+    // proportion of mediaImage can be changed here
     self.imageHeightConstraint.constant = self.mediaItem.image.size.height / self.mediaItem.image.size.width * CGRectGetWidth(self.contentView.bounds);
 }
 
 
-- (CGFloat) heightForMediaItem:(Media *)mediaItem width:(CGFloat)width {
++ (CGFloat) heightForMediaItem:(Media *)mediaItem width:(CGFloat)width {
     // Make a cell
     MediaTableViewCell *layoutCell = [[MediaTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"layoutCell"];
     layoutCell.mediaItem = mediaItem;
     layoutCell.frame = CGRectMake(0, 0, width, CGRectGetHeight(layoutCell.frame));
     [layoutCell setNeedsLayout];
-    [layoutCell setNeedsDisplay];
+    [layoutCell layoutIfNeeded];
     
     // Get the actual height required for the cell
     return CGRectGetMaxY(layoutCell.commentLabel.frame);

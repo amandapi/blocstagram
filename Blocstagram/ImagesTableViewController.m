@@ -56,7 +56,7 @@
 #pragma mark - Table view data source
 
 
-- (NSArray *)items {
+- (NSArray *)items {      // Assignment refactoring
     return [DataSource sharedInstance].mediaItems;
 }
 
@@ -77,11 +77,14 @@
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  {
 
     Media *item = [self items][indexPath.row];
-    UIImage *image = item.image;
+//    UIImage *image = item.image;
        // keep ratio: pictureHeight / pictureWidth = cellHeight / screenWidth
        // or  cellHeight = (screenWidth / pictureWidth) * pictureHeight
-   return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
-//    return [MediaTableViewCell heightForMediaItem:item width:CGRectGetWidth(self.view.frame)];
+//   return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
+//    return image.size.height / image.size.width * CGRectGetWidth(self.view.frame);
+    return [MediaTableViewCell heightForMediaItem:item width:CGRectGetWidth(self.view.frame)]; //best!
+//    return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
+
 }
 
 
@@ -96,10 +99,10 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
 
-            // Delete the row from the data source
-            Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
-            [[DataSource sharedInstance] deleteMediaItem:item];
-        }
+    // Delete the row from the data source
+    Media *item = [self items][indexPath.row];
+    [[DataSource sharedInstance] deleteMediaItem:item];
+    }
 }
 
 
@@ -167,7 +170,12 @@
 
 #pragma mark - UIScrollViewDelegate
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+//    [self infiniteScrollIfNecessary];
+//}
+
+// Assignment - Another delegate
+- (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     [self infiniteScrollIfNecessary];
 }
 
