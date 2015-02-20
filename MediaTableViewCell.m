@@ -12,7 +12,7 @@
 #import "Comment.h"
 #import "User.h"
 
-@interface MediaTableViewCell ()  { // access modifier to accomoodate the @properties
+@interface MediaTableViewCell ()  {   // access modifier to accommodate the @properties
     Media* _mediaItem;
 }
 
