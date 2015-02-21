@@ -97,8 +97,8 @@
         
         NSString *minID = [[self.mediaItems firstObject] idNumber];
         
-        // Assignment Why does app crash at 0 images and pull-to-refresh?
-        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure key exists
+        // Assignment
+        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure object exists
        
         NSDictionary *parameters = nil;
         if (minID != nil)
