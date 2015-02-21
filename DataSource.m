@@ -96,7 +96,13 @@
         self.isRefreshing = YES;
         
         NSString *minID = [[self.mediaItems firstObject] idNumber];
-        NSDictionary *parameters = @{@"min_id": minID};
+        
+        // Assignment Why does app crash at 0 images and pull-to-refresh?
+        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure key exists
+       
+        NSDictionary *parameters = nil;
+        if (minID != nil)
+        parameters = @{@"min_id" : minID};
         
         [self populateDataWithParameters:parameters completionHandler:^(NSError *error) {
             self.isRefreshing = NO;
@@ -106,7 +112,8 @@
             }
         }];
     }
-}
+    }
+
 
 - (void) requestOldItemsWithCompletionHandler:(NewItemCompletionBlock)completionHandler {
 
