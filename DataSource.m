@@ -98,7 +98,7 @@
         NSString *minID = [[self.mediaItems firstObject] idNumber];
         
         // Assignment
-        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure object exists
+        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure key and value exists
        
         NSDictionary *parameters = nil;
         if (minID != nil)
