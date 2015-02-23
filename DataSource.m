@@ -56,7 +56,6 @@
     }];
 }
 
-
 #pragma mark - Key/Value Observing
 
 - (NSUInteger) countOfMediaItems {
@@ -92,28 +91,34 @@
 
 - (void) requestNewItemsWithCompletionHandler:(NewItemCompletionBlock)completionHandler {
     self.thereAreNoMoreOlderMessages = NO;
+    
     if (self.isRefreshing == NO) {
         self.isRefreshing = YES;
         
         NSString *minID = [[self.mediaItems firstObject] idNumber];
         
-        // Assignment
-        // Parameters might be null (if there is no parameter, eg, all items have been deleted) so make sure key and value exists
-       
-        NSDictionary *parameters = nil;
-        if (minID != nil)
-        parameters = @{@"min_id" : minID};
+    // Assignment
+    // Parameters might be null (eg, all items have been deleted), then repopulate parameters
+        
+    if ([minID isEqual: @"null"]) {
+        NSDictionary *parameters = @{@"min_id": minID};
         
         [self populateDataWithParameters:parameters completionHandler:^(NSError *error) {
+                self.isRefreshing = NO;
+                if (completionHandler) {
+                    completionHandler(error);
+                }
+            }];
+    } else {   // Parameters exist
+        [self populateDataWithParameters:nil completionHandler:^(NSError *error) {
             self.isRefreshing = NO;
-            
             if (completionHandler) {
                 completionHandler(error);
-            }
-        }];
+                }
+            }];
+        }
     }
-    }
-
+}
 
 - (void) requestOldItemsWithCompletionHandler:(NewItemCompletionBlock)completionHandler {
 
@@ -224,7 +229,6 @@
         [self didChangeValueForKey:@"mediaItems"];
     }
 }
-
 
 - (void) downloadImageForMediaItem:(Media *)mediaItem {
     if (mediaItem.mediaURL && !mediaItem.image) {
