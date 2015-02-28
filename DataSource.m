@@ -10,8 +10,8 @@
 #import "User.h"
 #import "Media.h"
 #import "Comment.h"
-
 #import "LoginViewController.h"
+#import <UICKeyChainStore.h> // "" when import local files, <> external files
 
 @interface DataSource (){
     NSMutableArray *_mediaItems;
@@ -44,7 +44,31 @@
     self = [super init];
     
     if (self) {
-          [self registerForAccessTokenNotification];
+        self.accessToken = [UICKeyChainStore stringForKey:@"access token"];
+        
+        if (!self.accessToken) {
+            [self registerForAccessTokenNotification];
+        } else {
+            // Read the file at launch: first queue to background
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                NSString *fullPath = [self pathForFilename:NSStringFromSelector(@selector(mediaItems))];
+                NSArray *storedMediaItems = [NSKeyedUnarchiver unarchiveObjectWithFile:fullPath];
+                
+            // update changes to main queue
+                dispatch_async(dispatch_get_main_queue(), ^{
+            // Assignment: at launch, if cached images are found on disk, fetch newer contents from API
+                    if (storedMediaItems.count > 0) {
+                        NSMutableArray *mutableMediaItems = [storedMediaItems mutableCopy]; // make a mutable copy cuz the copy stored to disk is immutable.
+                        [self populateDataWithParameters:nil completionHandler:nil]; // populate data
+                        [self willChangeValueForKey:@"mediaItems"];
+                        self.mediaItems = mutableMediaItems;
+                        [self didChangeValueForKey:@"mediaItems"];
+                    } else {
+                        [self populateDataWithParameters:nil completionHandler:nil];
+                    }
+                });
+            });
+        }
     }
     return self;
 }
@@ -52,10 +76,18 @@
 - (void) registerForAccessTokenNotification {
     [[NSNotificationCenter defaultCenter] addObserverForName:LoginViewControllerDidGetAccessTokenNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
         self.accessToken = note.object;
+          [UICKeyChainStore setString:self.accessToken forKey:@"access token"];
         [self populateDataWithParameters:nil completionHandler:nil];
     }];
 }
 
+- (NSString *) pathForFilename:(NSString *) filename {
+    // To create a string containing an absolute path to the user's doc directory
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths firstObject];
+    NSString *dataPath = [documentsDirectory stringByAppendingPathComponent:filename];
+    return dataPath;
+}
 
 #pragma mark - Key/Value Observing
 
@@ -119,7 +151,6 @@
 
     if (self.isLoadingOlderItems == NO && self.thereAreNoMoreOlderMessages == NO) {
         self.isLoadingOlderItems = YES;
-        self.isLoadingOlderItems = YES;
         
         NSString *maxID = [[self.mediaItems lastObject] idNumber];
         NSDictionary *parameters = @{@"max_id": maxID};
@@ -157,7 +188,6 @@
                 NSError *webError;
                 NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&webError];
                 
-              //  if (feedDictionary) {
                 if (responseData) {
                     NSError *jsonError;
                     NSDictionary *feedDictionary = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
@@ -222,6 +252,28 @@
         [self willChangeValueForKey:@"mediaItems"];
         self.mediaItems = tmpMediaItems;
         [self didChangeValueForKey:@"mediaItems"];
+    }
+    
+    if (tmpMediaItems.count > 0) {
+        // Write the changes to disk: first, dispatch_async to background queue
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            // then make an array containing first 50 items
+            NSUInteger numberOfItemsToSave = MIN(self.mediaItems.count, 50);
+            NSArray *mediaItemsToSave = [self.mediaItems subarrayWithRange:NSMakeRange(0, numberOfItemsToSave)];
+            
+            // then convert array to NSData to save to disk
+            NSString *fullPath = [self pathForFilename:NSStringFromSelector(@selector(mediaItems))];
+            NSData *mediaItemData = [NSKeyedArchiver archivedDataWithRootObject:mediaItemsToSave];
+            
+            // When save to disk we should always pass 2 options:
+            // NSDataWritingAtomic ensures a complete file is saved, and NSDataWritingFileProtectionCompleteUnlessOpen protects user privacy.
+            NSError *dataError;
+            BOOL wroteSuccessfully = [mediaItemData writeToFile:fullPath options:NSDataWritingAtomic | NSDataWritingFileProtectionCompleteUnlessOpen error:&dataError];
+            
+            if (!wroteSuccessfully) {
+                NSLog(@"Couldn't write file: %@", dataError);
+            }
+        });
     }
 }
 
