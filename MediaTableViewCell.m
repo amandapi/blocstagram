@@ -10,9 +10,10 @@
 #import "Media.h"
 #import "Comment.h"
 #import "User.h"
+#import "DataSource.h"
 
 @interface MediaTableViewCell () <UIGestureRecognizerDelegate>
-//{   // access modifier to accommodate the @properties
+//{   // access modifier to accommodate the @properties - not needed anymore
 //    Media* _mediaItem;
 //}
 
@@ -24,6 +25,7 @@
 @property (nonatomic, strong) NSLayoutConstraint *commentLabelHeightConstraint;
 @property (nonatomic, strong) UITapGestureRecognizer *tapGestureRecognizer;
 @property (nonatomic, strong) UILongPressGestureRecognizer *longPressGestureRecognizer;
+@property (nonatomic, strong) UITapGestureRecognizer *doubleTapGestureRecognizer;
 
 @end
 
@@ -80,6 +82,13 @@ static NSParagraphStyle *paragraphStyle;
         self.longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressFired:)];
         self.longPressGestureRecognizer.delegate = self;
         [self.mediaImageView addGestureRecognizer:self.longPressGestureRecognizer];
+        
+        // Assignment retry download by tapping with 2 fingers
+        self.doubleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTapFired:)];
+        self.doubleTapGestureRecognizer.delegate = self;
+        self.doubleTapGestureRecognizer.numberOfTapsRequired = 2;
+        [self addGestureRecognizer:self.doubleTapGestureRecognizer];
+
         
         self.usernameAndCaptionLabel = [[UILabel alloc] init];
         self.commentLabel = [[UILabel alloc] init];
@@ -146,6 +155,7 @@ static NSParagraphStyle *paragraphStyle;
     return self;
 }
 
+
 #pragma mark - Image View
 
 - (void) tapFired:(UITapGestureRecognizer *)sender {
@@ -157,6 +167,10 @@ static NSParagraphStyle *paragraphStyle;
     if (sender.state == UIGestureRecognizerStateBegan) {
         [self.delegate cell:self didLongPressImageView:self.mediaImageView];
     }
+}
+
+- (void) doubleTapFired:(UIGestureRecognizer *)sender {
+    [[DataSource sharedInstance] downloadImageForMediaItem:self.mediaItem];
 }
 
 #pragma mark - UIGestureRecognizerDelegate
@@ -235,7 +249,7 @@ static NSParagraphStyle *paragraphStyle;
     self.usernameAndCaptionLabel.attributedText = [self usernameAndCaptionString];
     self.commentLabel.attributedText = [self commentString];
 
-    // Move the following lines to layoutSubviews
+    // Moved the following lines to layoutSubviews
     //     if (_mediaItem.image) {
     //         self.imageHeightConstraint.constant = self.mediaItem.image.size.height / self.mediaItem.image.size.width * CGRectGetWidth(self.contentView.bounds);
     //} else {
