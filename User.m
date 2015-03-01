@@ -25,7 +25,6 @@
             self.profilePictureURL = profileURL;
         }
     }
-    
     return self;
 }
 
