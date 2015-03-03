@@ -119,6 +119,14 @@
     }
 }
 
+- (void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    Media *mediaItem = [DataSource sharedInstance].mediaItems[indexPath.row];
+    if (mediaItem.downloadState == MediaDownloadStateNeedsImage) {
+        [[DataSource sharedInstance] downloadImageForMediaItem:mediaItem];
+    }
+}
+
+
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  {
 
     Media *item = [self items][indexPath.row];
@@ -232,16 +240,20 @@
     }
 }
 
-
-//- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-//    [self infiniteScrollIfNecessary];
-//}
+#pragma mark - ScrollView delegate
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [self infiniteScrollIfNecessary];
+}
 
 // Assignment - Another delegate
 - (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     [self infiniteScrollIfNecessary];
 }
 
+// Another delegate
+- (void) scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
+    [self infiniteScrollIfNecessary];
+}
 
 /*
 // Override to support rearranging the table view.

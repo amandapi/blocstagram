@@ -22,6 +22,10 @@
         
         if (standardResolutionImageURL) {
             self.mediaURL = standardResolutionImageURL;
+            // set default value to MediaDownloadState, if not it will automatically set to NeedsImage
+            self.downloadState = MediaDownloadStateNeedsImage;
+        } else {
+            self.downloadState = MediaDownloadStateNonRecoverableError;
         }
         
         NSDictionary *captionDictionary = mediaDictionary[@"caption"];
@@ -56,7 +60,17 @@
         self.user = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(user))];
         self.mediaURL = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(mediaURL))];
         //comment out the following line which decodes the image - then if image fails to download it's never retried
-        //self.image = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(image))];
+        self.image = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(image))];
+        
+        // set self.downloadState then after relaunching, saved media items will still have a download state
+        if (self.image) {
+            self.downloadState = MediaDownloadStateHasImage;
+        } else if (self.mediaURL) {
+            self.downloadState = MediaDownloadStateNeedsImage;
+        } else {
+            self.downloadState = MediaDownloadStateNonRecoverableError;
+        }
+        
         self.caption = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(caption))];
         self.comments = [aDecoder decodeObjectForKey:NSStringFromSelector(@selector(comments))];
     }
