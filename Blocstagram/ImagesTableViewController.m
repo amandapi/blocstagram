@@ -140,6 +140,12 @@
 
 }
 
+- (void) cellDidPressLikeButton:(MediaTableViewCell *)cell {
+    // connect cell to data source method
+    [[DataSource sharedInstance] toggleLikeOnMediaItem:cell.mediaItem];
+}
+
+
 #pragma mark - UIViewControllerTransitioningDelegate
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented

@@ -34,7 +34,7 @@
 }
 
 + (instancetype) sharedInstance {   // only run once
-    static dispatch_once_t once;   // stores completion staus of dispatch_once
+    static dispatch_once_t once;   // stores completion status of dispatch_once
     static id sharedInstance;    // stores created shared instance
     dispatch_once(&once, ^{
         sharedInstance = [[self alloc] init];
@@ -254,13 +254,14 @@
     }
     
     if (tmpMediaItems.count > 0) {
-        // Write the changes to disk: first, dispatch_async to background queue
+       
+        // Write the changes to disk
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            // then make an array containing first 50 items
+            // make an array containing first 50 items
             NSUInteger numberOfItemsToSave = MIN(self.mediaItems.count, 50);
             NSArray *mediaItemsToSave = [self.mediaItems subarrayWithRange:NSMakeRange(0, numberOfItemsToSave)];
             
-            // then convert array to NSData to save to disk
+            // convert array to NSData to save to disk
             NSString *fullPath = [self pathForFilename:NSStringFromSelector(@selector(mediaItems))];
             NSData *mediaItemData = [NSKeyedArchiver archivedDataWithRootObject:mediaItemsToSave];
             
@@ -316,6 +317,55 @@
              }
         }];
     }
+}
+
+#pragma mark - Liking Media Items
+
+- (void) toggleLikeOnMediaItem:(Media *)mediaItem {
+    NSString *urlString = [NSString stringWithFormat:@"media/%@/likes", mediaItem.idNumber];
+    NSDictionary *parameters = @{@"access_token": self.accessToken};
+    
+    if (mediaItem.likeState == LikeStateNotLiked) {
+        
+        mediaItem.likeState = LikeStateLiking;
+        
+        [self.instagramOperationManager POST:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            
+            mediaItem.likeState = LikeStateLiked;
+            
+            mediaItem.likeNumber ++; // add 1 if like
+            
+            [self reloadMediaItem:mediaItem];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            
+            mediaItem.likeState = LikeStateNotLiked;
+            [self reloadMediaItem:mediaItem];
+        }];
+        
+    } else if (mediaItem.likeState == LikeStateLiked) {
+        
+        mediaItem.likeState = LikeStateUnliking;
+        
+        [self.instagramOperationManager DELETE:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            mediaItem.likeState = LikeStateNotLiked;
+            
+            mediaItem.likeNumber --;  // -1 if unlike
+            
+            [self reloadMediaItem:mediaItem];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            mediaItem.likeState = LikeStateLiked;
+            [self reloadMediaItem:mediaItem];
+        }];
+        
+    }
+    
+    [self reloadMediaItem:mediaItem];
+}
+
+- (void) reloadMediaItem:(Media *)mediaItem {
+    NSMutableArray *mutableArrayWithKVO = [self mutableArrayValueForKey:@"mediaItems"];
+    NSUInteger index = [mutableArrayWithKVO indexOfObject:mediaItem];
+    [mutableArrayWithKVO replaceObjectAtIndex:index withObject:mediaItem];
 }
 
 @end

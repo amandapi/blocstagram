@@ -11,6 +11,7 @@
 #import "Comment.h"
 #import "User.h"
 #import "DataSource.h"
+#import "LikeButton.h"
 
 @interface MediaTableViewCell () <UIGestureRecognizerDelegate>
 //{   // access modifier to accommodate the @properties - not needed anymore
@@ -26,6 +27,8 @@
 @property (nonatomic, strong) UITapGestureRecognizer *tapGestureRecognizer;
 @property (nonatomic, strong) UILongPressGestureRecognizer *longPressGestureRecognizer;
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTapGestureRecognizer;
+@property (nonatomic, strong) LikeButton *likeButton;
+@property (nonatomic, strong) UILabel *likecountLabel;
 
 @end
 
@@ -89,26 +92,38 @@ static NSParagraphStyle *paragraphStyle;
         self.doubleTapGestureRecognizer.numberOfTapsRequired = 2;
         [self addGestureRecognizer:self.doubleTapGestureRecognizer];
 
-        
         self.usernameAndCaptionLabel = [[UILabel alloc] init];
         self.commentLabel = [[UILabel alloc] init];
         self.commentLabel.numberOfLines = 0;
+        // self.commentLabel.backgroundColor = commentLabelGray; //white is better
         
-        for (UIView *view in @[self.mediaImageView, self.usernameAndCaptionLabel, self.commentLabel]) {
+        // create likeButton
+        self.likeButton = [[LikeButton alloc] init];
+        [self.likeButton addTarget:self action:@selector(likePressed:) forControlEvents:UIControlEventTouchUpInside];
+        self.likeButton.backgroundColor = usernameLabelGray;
+        
+        // create likeCount
+        self.likecountLabel = [[UILabel alloc] init];
+        self.likecountLabel.backgroundColor = usernameLabelGray;
+        
+        for (UIView *view in @[self.mediaImageView, self.usernameAndCaptionLabel, self.commentLabel, self.likeButton, self.likecountLabel]) {
+
             [self.contentView addSubview:view];
              view.translatesAutoresizingMaskIntoConstraints = NO;
         }
         
         // define dictionary for using tricks
-        NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel);
+        NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel, _likecountLabel, _likeButton);
         
         [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView]|"
                       options:kNilOptions
                       metrics:nil
                       views:viewDictionary]];
         
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel]|"
-                      options:kNilOptions
+       // [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel][_likeCount][_likeButton(==38)]|"
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_usernameAndCaptionLabel][_likecountLabel(==38)][_likeButton(==38)]|"
+                      // options:kNilOptions
+                      options:NSLayoutFormatAlignAllTop | NSLayoutFormatAlignAllBottom
                       metrics:nil
                       views:viewDictionary]];
         
@@ -153,6 +168,12 @@ static NSParagraphStyle *paragraphStyle;
         
     }
     return self;
+}
+
+#pragma mark - Liking
+
+- (void) likePressed:(UIButton *)sender { // inform delegate when button is tapped
+    [self.delegate cellDidPressLikeButton:self];
 }
 
 
@@ -201,7 +222,7 @@ static NSParagraphStyle *paragraphStyle;
     self.separatorInset = UIEdgeInsetsMake(0, 0, 0, CGRectGetWidth(self.bounds));
 }
 
-
+#pragma mark - Strings
 
 - (NSAttributedString *) usernameAndCaptionString {
     CGFloat usernameFontSize = 15;
@@ -242,12 +263,23 @@ static NSParagraphStyle *paragraphStyle;
 }
 
 
+- (NSAttributedString *) likecountLabelString {
+    // Make a string to show number of like counts on likecountLabel
+    CGFloat likeNumberFontSize = 15;
+    NSString *baseString = [NSString stringWithFormat:@"%ld", self.mediaItem.likeNumber];
+    NSMutableAttributedString *mutableLikecountLabelString = [[NSMutableAttributedString alloc] initWithString:baseString attributes:@{NSFontAttributeName : [boldFont fontWithSize:likeNumberFontSize], NSParagraphStyleAttributeName: paragraphStyle}];
+    return mutableLikecountLabelString;
+}
+
+
 - (void) setMediaItem:(Media *)mediaItem {
     _mediaItem = mediaItem;
     
     self.mediaImageView.image = _mediaItem.image;
     self.usernameAndCaptionLabel.attributedText = [self usernameAndCaptionString];
     self.commentLabel.attributedText = [self commentString];
+    self.likeButton.likeButtonState = mediaItem.likeState;  // display correct state on button
+    self.likecountLabel.attributedText = [self likecountLabelString];
 
     // Moved the following lines to layoutSubviews
     //     if (_mediaItem.image) {

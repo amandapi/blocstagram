@@ -9,12 +9,13 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@class Media, MediaTableViewCell;
+@class Media, MediaTableViewCell, LikeButton;
 
 @protocol MediaTableViewCellDelegate <NSObject>
 
 - (void) cell:(MediaTableViewCell *)cell didTapImageView:(UIImageView *)imageView;
 - (void) cell:(MediaTableViewCell *)cell didLongPressImageView:(UIImageView *)imageView;
+- (void) cellDidPressLikeButton:(MediaTableViewCell *)cell;
 
 @end
 
