@@ -368,4 +368,37 @@
     [mutableArrayWithKVO replaceObjectAtIndex:index withObject:mediaItem];
 }
 
+#pragma mark - Comments
+
+- (void) commentOnMediaItem:(Media *)mediaItem withCommentText:(NSString *)commentText {
+    // method will be posted to Imstagram's comments endpoint. If succeed, it will fetch the media item with the new comment. If not, it simply reloads the row.
+    
+    if (!commentText || commentText.length == 0) {
+        return;
+    }
+    
+    NSString *urlString = [NSString stringWithFormat:@"media/%@/comments", mediaItem.idNumber];
+    NSDictionary *parameters = @{@"access_token": self.accessToken, @"text": commentText};
+    
+    [self.instagramOperationManager POST:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        mediaItem.temporaryComment = nil;
+        
+        NSString *refreshMediaUrlString = [NSString stringWithFormat:@"media/%@", mediaItem.idNumber];
+        NSDictionary *parameters = @{@"access_token": self.accessToken};
+        [self.instagramOperationManager GET:refreshMediaUrlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            Media *newMediaItem = [[Media alloc] initWithDictionary:responseObject];
+            NSMutableArray *mutableArrayWithKVO = [self mutableArrayValueForKey:@"mediaItems"];
+            NSUInteger index = [mutableArrayWithKVO indexOfObject:mediaItem];
+            [mutableArrayWithKVO replaceObjectAtIndex:index withObject:newMediaItem];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            // the failure block gets called unless special permission is granted by Instagram
+            [self reloadMediaItem:mediaItem];
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+        NSLog(@"Response: %@", operation.responseString);
+        [self reloadMediaItem:mediaItem];
+    }];
+}
+
 @end

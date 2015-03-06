@@ -12,11 +12,9 @@
 #import "User.h"
 #import "DataSource.h"
 #import "LikeButton.h"
+#import "ComposeCommentView.h"
 
-@interface MediaTableViewCell () <UIGestureRecognizerDelegate>
-//{   // access modifier to accommodate the @properties - not needed anymore
-//    Media* _mediaItem;
-//}
+@interface MediaTableViewCell () <UIGestureRecognizerDelegate, ComposeCommentViewDelegate>
 
 @property (nonatomic, strong) UIImageView *mediaImageView;
 @property (nonatomic, strong) UILabel *usernameAndCaptionLabel;
@@ -29,6 +27,7 @@
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic, strong) LikeButton *likeButton;
 @property (nonatomic, strong) UILabel *likecountLabel;
+@property (nonatomic, strong) ComposeCommentView *commentView;
 
 @end
 
@@ -106,14 +105,18 @@ static NSParagraphStyle *paragraphStyle;
         self.likecountLabel = [[UILabel alloc] init];
         self.likecountLabel.backgroundColor = usernameLabelGray;
         
-        for (UIView *view in @[self.mediaImageView, self.usernameAndCaptionLabel, self.commentLabel, self.likeButton, self.likecountLabel]) {
+        
+        self.commentView = [[ComposeCommentView alloc] init];
+        self.commentView.delegate = self;
+        
+        for (UIView *view in @[self.mediaImageView, self.usernameAndCaptionLabel, self.commentLabel, self.likeButton, self.likecountLabel, self.commentView]) {
 
             [self.contentView addSubview:view];
              view.translatesAutoresizingMaskIntoConstraints = NO;
         }
         
         // define dictionary for using tricks
-        NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel, _likecountLabel, _likeButton);
+        NSDictionary *viewDictionary = NSDictionaryOfVariableBindings(_mediaImageView, _usernameAndCaptionLabel, _commentLabel, _likecountLabel, _likeButton, _commentView);
         
         [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_mediaImageView]|"
                       options:kNilOptions
@@ -132,13 +135,17 @@ static NSParagraphStyle *paragraphStyle;
                       metrics:nil
                       views:viewDictionary]];
         
-        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_mediaImageView][_usernameAndCaptionLabel][_commentLabel]"
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_commentView]|"
+                      options:kNilOptions
+                      metrics:nil
+                      views:viewDictionary]];
+        
+        [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_mediaImageView][_usernameAndCaptionLabel][_commentLabel][_commentView(==100)]"
                       options:kNilOptions
                       metrics:nil
                       views:viewDictionary]];
         
         // Height constraints: height=(nil*1)+100
-
         self.imageHeightConstraint = [NSLayoutConstraint constraintWithItem:_mediaImageView
                       attribute:NSLayoutAttributeHeight
                       relatedBy:NSLayoutRelationEqual
@@ -280,13 +287,7 @@ static NSParagraphStyle *paragraphStyle;
     self.commentLabel.attributedText = [self commentString];
     self.likeButton.likeButtonState = mediaItem.likeState;  // display correct state on button
     self.likecountLabel.attributedText = [self likecountLabelString];
-
-    // Moved the following lines to layoutSubviews
-    //     if (_mediaItem.image) {
-    //         self.imageHeightConstraint.constant = self.mediaItem.image.size.height / self.mediaItem.image.size.width * CGRectGetWidth(self.contentView.bounds);
-    //} else {
-    //self.imageHeightConstraint.constant = 0;
-    // }
+    self.commentView.text = mediaItem.temporaryComment; // update text when cell is created or reused
 }
 
 
@@ -299,9 +300,28 @@ static NSParagraphStyle *paragraphStyle;
     [layoutCell layoutIfNeeded];
     
     // Get the actual height required for the cell
-    return CGRectGetMaxY(layoutCell.commentLabel.frame);
+    return CGRectGetMaxY(layoutCell.commentView.frame);
 }
 
+#pragma mark - ComposeCommentViewDelegate
+
+- (void) commentViewDidPressCommentButton:(ComposeCommentView *)sender {
+    [self.delegate cell:self didComposeComment:self.mediaItem.temporaryComment];
+    // delegate is the images table controller
+}
+
+- (void) commentView:(ComposeCommentView *)sender textDidChange:(NSString *)text {
+    self.mediaItem.temporaryComment = text; // temporary so that user can scroll and not losing comments still writing
+}
+
+- (void) commentViewWillStartEditing:(ComposeCommentView *)sender {
+    [self.delegate cellWillStartComposingComment:self];
+}
+
+- (void) stopComposingComment {
+    [self.commentView stopComposingComment];
+    // if cell was told stopComposingComment, cell passes message to comment view
+}
 
 - (void)awakeFromNib {
     // Initialization code
