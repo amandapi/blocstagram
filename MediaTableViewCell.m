@@ -273,7 +273,7 @@ static NSParagraphStyle *paragraphStyle;
 - (NSAttributedString *) likecountLabelString {
     // Make a string to show number of like counts on likecountLabel
     CGFloat likeNumberFontSize = 15;
-    NSString *baseString = [NSString stringWithFormat:@"%ld", self.mediaItem.likeNumber];
+    NSString *baseString = [NSString stringWithFormat:@"%ld", (unsigned long)self.mediaItem.likeNumber];
     NSMutableAttributedString *mutableLikecountLabelString = [[NSMutableAttributedString alloc] initWithString:baseString attributes:@{NSFontAttributeName : [boldFont fontWithSize:likeNumberFontSize], NSParagraphStyleAttributeName: paragraphStyle}];
     return mutableLikecountLabelString;
 }
