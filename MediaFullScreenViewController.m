@@ -6,13 +6,11 @@
 //  Copyright (c) 2015 Bloc. All rights reserved.
 //
 
-#import "MediaFullScreenViewController.h" 
-
+#import "MediaFullScreenViewController.h"
 #import "Media.h"
 
 @interface MediaFullScreenViewController () <UIScrollViewDelegate>
 
-@property (nonatomic, strong) Media *media;
 @property (nonatomic, strong) UITapGestureRecognizer *tap;
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTap;
 @property (nonatomic, weak) UIButton *shareButton;
@@ -72,6 +70,17 @@
     [self.scrollView addGestureRecognizer:self.doubleTap];
 }
 
+
+- (void) viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    
+    // frame of scrollView is view's bound, ie, take up all space
+    self.scrollView.frame = self.view.bounds;
+    
+    [self recalculateZoomScale];
+}
+
+
 - (void) buttonPressed:(UIButton *)sender {
     NSMutableArray *itemsToShare = [NSMutableArray array];
     
@@ -106,15 +115,14 @@
     }
 }
 
-
-- (void) viewWillLayoutSubviews {
-    [super viewWillLayoutSubviews];
-    
-    // frame of scrollView is view's bound, ie, take up all space
-    self.scrollView.frame = self.view.bounds;
+- (void) recalculateZoomScale {
     
     CGSize scrollViewFrameSize = self.scrollView.frame.size;
     CGSize scrollViewContentSize = self.scrollView.contentSize;
+    
+    // divide size dimensions by self.scrollView.zoomScale so allow subclasses to recalculate zoom scale for scroll views that are zoomed out
+    scrollViewContentSize.height /= self.scrollView.zoomScale;
+    scrollViewContentSize.width /= self.scrollView.zoomScale;
     
     CGFloat scaleWidth = scrollViewFrameSize.width / scrollViewContentSize.width;
     CGFloat scaleHeight = scrollViewFrameSize.height / scrollViewContentSize.height;

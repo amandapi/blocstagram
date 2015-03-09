@@ -21,7 +21,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        // Initialization code. NOte self.button is a subview of self.txtView not self. This has something to do with wrapping the text.
+        // Initialization code. Note self.button is a subview of self.textView not self. This has something to do with wrapping the text.
         self.textView = [UITextView new];
         self.textView.delegate = self;
         

@@ -15,8 +15,9 @@
 #import "MediaFullScreenViewController.h"
 #import "MediaFullScreenAnimator.h"
 #import "CameraViewController.h"
+#import "ImageLibraryViewController.h"
 
-@interface ImagesTableViewController () <MediaTableViewCellDelegate, UIViewControllerTransitioningDelegate, CameraViewControllerDelegate>
+@interface ImagesTableViewController () <MediaTableViewCellDelegate, UIViewControllerTransitioningDelegate, CameraViewControllerDelegate, ImageLibraryViewControllerDelegate>
 
 @property (nonatomic, weak) UIImageView *lastTappedImageView;
 @property (nonatomic, weak) UIView *lastSelectedCommentView;
@@ -36,6 +37,7 @@
 
 - (void)viewDidLoad {  // load our 10 jpgs in the array
     [super viewDidLoad];
+    
     [[DataSource sharedInstance] addObserver:self forKeyPath:@"mediaItems" options:0 context:nil];
     
     self.refreshControl = [[UIRefreshControl alloc] init];
@@ -43,11 +45,11 @@
     
     [self.tableView registerClass:[MediaTableViewCell class] forCellReuseIdentifier:@"mediaCell"];
     
-    
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeInteractive;
     
     // if any photo capabilities are available, add a camera button
-    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] ||[UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]) {
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] ||[UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum])
+    {
         UIBarButtonItem *cameraButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCamera target:self action:@selector(cameraPressed:)];
         self.navigationItem.rightBarButtonItem = cameraButton;
     }
@@ -73,15 +75,13 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
-
 - (void) dealloc
 {
     [[DataSource sharedInstance] removeObserver:self forKeyPath:@"mediaItems"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-
-- (void)viewWillAppear:(BOOL)animated {
+- (void) viewWillAppear:(BOOL)animated {
     NSIndexPath *indexPath = self.tableView.indexPathForSelectedRow;
     if (indexPath) {
         [self.tableView deselectRowAtIndexPath:indexPath animated:animated];
@@ -92,23 +92,51 @@
     
 }
 
-- (void)didReceiveMemoryWarning {
+- (void) didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
-#pragma mark - Camera and BLCCameraViewControllerDelegate
+#pragma mark - Camera, CameraViewControllerDelegate, and ImageLibraryViewControllerDelegate
 
 - (void) cameraPressed:(UIBarButtonItem *) sender {
+    
+    UIViewController *imageVC;
+    
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+        
     CameraViewController *cameraVC = [[CameraViewController alloc] init];
     cameraVC.delegate = self;
-    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:cameraVC];
+        
+        imageVC = cameraVC;
+    } else if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum])
+    {
+        ImageLibraryViewController *imageLibraryVC = [[ImageLibraryViewController alloc] init];
+        imageLibraryVC.delegate = self;
+        imageVC = imageLibraryVC;
+    }
+    
+    if (imageVC) {
+        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:imageVC];
+        
     [self presentViewController:nav animated:YES completion:nil];
+    }
     return;
 }
 
 - (void) cameraViewController:(CameraViewController *)cameraViewController didCompleteWithImage:(UIImage *)image {
+    
     [cameraViewController dismissViewControllerAnimated:YES completion:^{
+        if (image) {
+            NSLog(@"Got an image!");
+        } else {
+            NSLog(@"Closed without an image.");
+        }
+    }];
+}
+
+- (void) imageLibraryViewController:(ImageLibraryViewController *)imageLibraryViewController didCompleteWithImage:(UIImage *)image {
+    [imageLibraryViewController dismissViewControllerAnimated:YES completion:^{
         if (image) {
             NSLog(@"Got an image!");
         } else {
@@ -124,12 +152,10 @@
     return [DataSource sharedInstance].mediaItems;
 }
 
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 
     return [self items].count;
 }
-
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
@@ -138,6 +164,59 @@
     cell.mediaItem = [self items][indexPath.row];
     return cell;
 }
+
+- (CGFloat) tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
+    if (item.image) {
+        return 450;
+    } else {
+        return 250;
+    }
+}
+
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    // when a row is tapped, we assume the user does not want the keyboard
+    MediaTableViewCell *cell = (MediaTableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
+    [cell stopComposingComment];
+}
+
+- (void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    Media *mediaItem = [DataSource sharedInstance].mediaItems[indexPath.row];
+    if (mediaItem.downloadState == MediaDownloadStateNeedsImage) {
+        [[DataSource sharedInstance] downloadImageForMediaItem:mediaItem];
+    }
+}
+
+
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  {
+    
+    Media *item = [self items][indexPath.row];
+    //    UIImage *image = item.image;
+    // keep ratio: pictureHeight / pictureWidth = cellHeight / screenWidth
+    // or  cellHeight = (screenWidth / pictureWidth) * pictureHeight
+    //   return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
+    //    return image.size.height / image.size.width * CGRectGetWidth(self.view.frame);
+    return [MediaTableViewCell heightForMediaItem:item width:CGRectGetWidth(self.view.frame)]; //best!
+    //    return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
+    
+}
+
+// Override to support conditional editing of the table view.
+//- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    // Return NO if you do not want the specified item to be editable.
+//    return YES;
+//}
+
+
+// Override to support editing the table view.
+//- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+//    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        
+        // Delete the row from the data source
+//        Media *item = [self items][indexPath.row];
+//        [[DataSource sharedInstance] deleteMediaItem:item];
+//    }
+//}
 
 
 #pragma mark - MediaTableViewCellDelegate
@@ -170,41 +249,6 @@
     }
 }
 
-- (CGFloat) tableView:(UITableView *)tableView estimatedHeightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    Media *item = [DataSource sharedInstance].mediaItems[indexPath.row];
-    if (item.image) {
-        return 450;
-    } else {
-        return 250;
-    }
-}
-
-- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    // when a row is tapped, we assume the user does not want the keyboard
-    MediaTableViewCell *cell = (MediaTableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
-    [cell stopComposingComment];
-}
-
-- (void) tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
-    Media *mediaItem = [DataSource sharedInstance].mediaItems[indexPath.row];
-    if (mediaItem.downloadState == MediaDownloadStateNeedsImage) {
-        [[DataSource sharedInstance] downloadImageForMediaItem:mediaItem];
-    }
-}
-
-
-- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath  {
-
-    Media *item = [self items][indexPath.row];
-//    UIImage *image = item.image;
-       // keep ratio: pictureHeight / pictureWidth = cellHeight / screenWidth
-       // or  cellHeight = (screenWidth / pictureWidth) * pictureHeight
-//   return  300 + (image.size.height / image.size.width * CGRectGetWidth(self.view.frame));
-//    return image.size.height / image.size.width * CGRectGetWidth(self.view.frame);
-    return [MediaTableViewCell heightForMediaItem:item width:CGRectGetWidth(self.view.frame)]; //best!
-//    return (CGRectGetWidth(self.view.frame) / image.size.width) * image.size.height;
-
-}
 
 - (void) cellDidPressLikeButton:(MediaTableViewCell *)cell {
     // connect cell to data source method
@@ -225,14 +269,22 @@
 #pragma mark - UIViewControllerTransitioningDelegate
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented
-            presentingController:(UIViewController *)presenting
-            sourceController:(UIViewController *)source {
+
+    presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
     
     MediaFullScreenAnimator *animator = [MediaFullScreenAnimator new];
     animator.presenting = YES;
     animator.cellImageView = self.lastTappedImageView;
     return animator;
 }
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
+    MediaFullScreenAnimator *animator = [MediaFullScreenAnimator new];
+    animator.cellImageView = self.lastTappedImageView;
+    return animator;
+}
+
+#pragma mark - Keyboard Handling
 
 - (void)keyboardWillShow:(NSNotification *)notification
 {
@@ -306,30 +358,6 @@
     } completion:nil];
 }
 
-- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
-    MediaFullScreenAnimator *animator = [MediaFullScreenAnimator new];
-    animator.cellImageView = self.lastTappedImageView;
-    return animator;
-}
-
-
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-
-
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-
-    // Delete the row from the data source
-    Media *item = [self items][indexPath.row];
-    [[DataSource sharedInstance] deleteMediaItem:item];
-    }
-}
-
 
 #pragma mark - Key/Value Observing
 
@@ -376,7 +404,7 @@
     }
 }
 
-#pragma mark - UIScrollView
+#pragma mark - Getting More Data
 
 - (void) refreshControlDidFire:(UIRefreshControl *) sender {
     [[DataSource sharedInstance] requestNewItemsWithCompletionHandler:^(NSError *error) {
