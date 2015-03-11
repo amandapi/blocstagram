@@ -9,7 +9,6 @@
 #import "ImageLibraryViewController.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "CropImageViewController.h"
-#import "FilterCollectionViewCell.h"
 
 @interface ImageLibraryViewController () <CropImageViewControllerDelegate>
 

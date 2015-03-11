@@ -99,7 +99,7 @@
         self.navigationItem.rightBarButtonItem = self.sendBarButton;
     }
     
-    [self.filterCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
+    [self.filterCollectionView registerClass:[FilterCollectionViewCell class] forCellWithReuseIdentifier:@"cell"];   // changed registerClass after new subclass
     
     self.view.backgroundColor = [UIColor whiteColor];
     self.filterCollectionView.backgroundColor = [UIColor whiteColor];
@@ -146,22 +146,21 @@
     return self.filterImages.count;
 }
 
-- (UICollectionViewCell*) collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+- (FilterCollectionViewCell*) collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     
     // when the cell loads, we make sure there is an image view and a label on it, and set contents from appropriate arrays
     
-    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
+    FilterCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"cell" forIndexPath:indexPath];
     
-    static NSInteger imageViewTag = 1000;
+/*    static NSInteger imageViewTag = 1000;
     static NSInteger labelTag = 1001;
     
     UIImageView *thumbnail = (UIImageView *)[cell.contentView viewWithTag:imageViewTag];
     UILabel *label = (UILabel *)[cell.contentView viewWithTag:labelTag];
-
-    
+*/    
     UICollectionViewFlowLayout *flowLayout = (UICollectionViewFlowLayout *)self.filterCollectionView.collectionViewLayout;
-    
-    CGFloat thumbnailEdgeSize = flowLayout.itemSize.width;
+
+/*    CGFloat thumbnailEdgeSize = flowLayout.itemSize.width;
 
     // set frames of these items based on the flow layout's itemSize property we set in viewWillLayoutSubviews
     
@@ -182,9 +181,14 @@
         [cell.contentView addSubview:label];
     }
 
+  */
+
+    if (!cell) {
+        cell = [[FilterCollectionViewCell alloc]initWithFrame:CGRectMake(0, 0, flowLayout.itemSize.width, flowLayout.itemSize.height)];
+    }
     
-    thumbnail.image = self.filterImages[indexPath.row];
-    label.text = self.filterTitles[indexPath.row];
+    cell.thumbnail.image = self.filterImages[indexPath.row];
+    cell.label.text = self.filterTitles[indexPath.row];
     
     return cell;
 }
