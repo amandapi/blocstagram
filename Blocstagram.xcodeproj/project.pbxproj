@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A01C9FC1AB40D3E009B4E96 /* MediaTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A01C9FB1AB40D3E009B4E96 /* MediaTests.m */; };
+		0A01C9FE1AB41B1B009B4E96 /* ComposeCommentViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A01C9FD1AB41B1B009B4E96 /* ComposeCommentViewTests.m */; };
+		0A01CA001AB41F6C009B4E96 /* MediaTableViewCellTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A01C9FF1AB41F6C009B4E96 /* MediaTableViewCellTests.m */; };
 		0A026F151AAA8DCC00FFF602 /* CameraToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A026F141AAA8DCC00FFF602 /* CameraToolbar.m */; };
 		0A026F181AAA8F5100FFF602 /* CameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A026F171AAA8F5100FFF602 /* CameraViewController.m */; };
+		0A05CCDE1AB407E500D90FCC /* UserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A05CCDD1AB407E500D90FCC /* UserTests.m */; };
+		0A05CCE01AB40A8C00D90FCC /* CommentTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A05CCDF1AB40A8C00D90FCC /* CommentTests.m */; };
 		0A0711251AACE14500983A34 /* CropBox.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A0711241AACE14500983A34 /* CropBox.m */; };
 		0A0711281AACE78000983A34 /* CropImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A0711271AACE77F00983A34 /* CropImageViewController.m */; };
 		0A07112B1AACED9100983A34 /* ImageLibraryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0A07112A1AACED9100983A34 /* ImageLibraryViewController.m */; };
@@ -56,10 +61,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0A01C9FB1AB40D3E009B4E96 /* MediaTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaTests.m; sourceTree = "<group>"; };
+		0A01C9FD1AB41B1B009B4E96 /* ComposeCommentViewTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ComposeCommentViewTests.m; sourceTree = "<group>"; };
+		0A01C9FF1AB41F6C009B4E96 /* MediaTableViewCellTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MediaTableViewCellTests.m; sourceTree = "<group>"; };
 		0A026F131AAA8DCC00FFF602 /* CameraToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CameraToolbar.h; sourceTree = "<group>"; };
 		0A026F141AAA8DCC00FFF602 /* CameraToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CameraToolbar.m; sourceTree = "<group>"; };
 		0A026F161AAA8F5100FFF602 /* CameraViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CameraViewController.h; sourceTree = "<group>"; };
 		0A026F171AAA8F5100FFF602 /* CameraViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CameraViewController.m; sourceTree = "<group>"; };
+		0A05CCDD1AB407E500D90FCC /* UserTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserTests.m; sourceTree = "<group>"; };
+		0A05CCDF1AB40A8C00D90FCC /* CommentTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CommentTests.m; sourceTree = "<group>"; };
 		0A0711231AACE14500983A34 /* CropBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CropBox.h; sourceTree = "<group>"; };
 		0A0711241AACE14500983A34 /* CropBox.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CropBox.m; sourceTree = "<group>"; };
 		0A0711261AACE77F00983A34 /* CropImageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CropImageViewController.h; sourceTree = "<group>"; };
@@ -228,6 +238,11 @@
 			children = (
 				0AA45E531A8BFDE6001FA5DD /* BlocstagramTests.m */,
 				0AA45E511A8BFDE6001FA5DD /* Supporting Files */,
+				0A05CCDD1AB407E500D90FCC /* UserTests.m */,
+				0A05CCDF1AB40A8C00D90FCC /* CommentTests.m */,
+				0A01C9FB1AB40D3E009B4E96 /* MediaTests.m */,
+				0A01C9FD1AB41B1B009B4E96 /* ComposeCommentViewTests.m */,
+				0A01C9FF1AB41F6C009B4E96 /* MediaTableViewCellTests.m */,
 			);
 			path = BlocstagramTests;
 			sourceTree = "<group>";
@@ -451,7 +466,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A01CA001AB41F6C009B4E96 /* MediaTableViewCellTests.m in Sources */,
+				0A05CCDE1AB407E500D90FCC /* UserTests.m in Sources */,
+				0A05CCE01AB40A8C00D90FCC /* CommentTests.m in Sources */,
+				0A01C9FC1AB40D3E009B4E96 /* MediaTests.m in Sources */,
 				0AA45E541A8BFDE6001FA5DD /* BlocstagramTests.m in Sources */,
+				0A01C9FE1AB41B1B009B4E96 /* ComposeCommentViewTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
