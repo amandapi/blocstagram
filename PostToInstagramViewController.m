@@ -8,6 +8,7 @@
 
 #import "PostToInstagramViewController.h"
 #import "FilterCollectionViewCell.h"
+#import "DataSource.h"
 
 @interface PostToInstagramViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UIAlertViewDelegate, UIDocumentInteractionControllerDelegate>
 
@@ -22,6 +23,8 @@
 
 @property (nonatomic, strong) UIButton *sendButton; //big purple "send to Instagram" button
 @property (nonatomic, strong) UIBarButtonItem *sendBarButton; //show on short iPhones in the navigation bar where there's no room for sendButton
+
+@property (nonatomic, strong) UIDocumentInteractionController *documentController;
 
 @end
 
@@ -439,21 +442,24 @@
             return;
         }
         
-        UIDocumentInteractionController *documentController = [UIDocumentInteractionController interactionControllerWithURL:fileURL];
-        documentController.UTI = @"com.instagram.exclusivegram";
+//        UIDocumentInteractionController *documentController = [UIDocumentInteractionController interactionControllerWithURL:fileURL];
+//        documentController.UTI = @"com.instagram.exclusivegram";
         
-        documentController.delegate = self;
+        self.documentController = [UIDocumentInteractionController interactionControllerWithURL:fileURL];
+        self.documentController.UTI = @"com.instagram.exclusivegram";
+        
+        self.documentController.delegate = self;
         
         NSString *caption = [alertView textFieldAtIndex:0].text;
         
         if (caption.length > 0) {
-            documentController.annotation = @{@"InstagramCaption": caption};
+            self.documentController.annotation = @{@"InstagramCaption": caption};
         }
         
         if (self.sendButton.superview) {
-            [documentController presentOpenInMenuFromRect:self.sendButton.bounds inView:self.sendButton animated:YES];
+            [self.documentController presentOpenInMenuFromRect:self.sendButton.bounds inView:self.sendButton animated:YES];
         } else {
-            [documentController presentOpenInMenuFromBarButtonItem:self.sendBarButton animated:YES];
+            [self.documentController presentOpenInMenuFromBarButtonItem:self.sendBarButton animated:YES];
         }
     }
 }
@@ -462,7 +468,8 @@
 
 - (void)documentInteractionController:(UIDocumentInteractionController *)controller didEndSendingToApplication:(NSString *)application {
     // when document interactiion controller finishes, we dismiss the crop view
-    [self dismissViewControllerAnimated:YES completion:nil];
+//    [self dismissViewControllerAnimated:YES completion:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ImageFinishedNotification object:self];
 }
 
 /*

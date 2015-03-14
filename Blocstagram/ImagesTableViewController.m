@@ -23,6 +23,8 @@
 @property (nonatomic, weak) UIImageView *lastTappedImageView;
 @property (nonatomic, weak) UIView *lastSelectedCommentView;
 @property (nonatomic, assign) CGFloat lastKeyboardAdjustment;
+@property (nonatomic, strong) UIPopoverController *cameraPopover;
+@property (nonatomic, strong) UIPopoverController *longpressPopover;
 
 @end
 
@@ -67,6 +69,16 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillHide:)
                                                  name:UIKeyboardWillHideNotification
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(imageDidFinish:)
+                                                 name:ImageFinishedNotification
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(cell:didLongPressImageView:)
+                                                 name:ImageFinishedNotification
                                                object:nil];
 
     // Uncomment the following line to preserve selection between presentations.
@@ -120,19 +132,34 @@
     if (imageVC) {
         UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:imageVC];
         
-    [self presentViewController:nav animated:YES completion:nil];
+        if (isPhone) {
+            [self presentViewController:nav animated:YES completion:nil];
+        } else {
+            self.cameraPopover = [[UIPopoverController alloc] initWithContentViewController:nav];
+            // when init a popover controller. we must provide content view controller
+            self.cameraPopover.popoverContentSize = CGSizeMake(480, 852); //320, 568
+            [self.cameraPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES]; // its easier to present the popover controller using bar button items rther than a rect
+        }
     }
     return;
 }
 
 - (void) handleImage:(UIImage *)image withNavigationController:(UINavigationController *)nav {
     if (image) {
-        // this method ushes the controller, and is called by cameraViewController and imageLibraryViewController
+        // this method uses the controller, and is called by cameraViewController and imageLibraryViewController
         PostToInstagramViewController *postVC = [[PostToInstagramViewController alloc] initWithImage:image];
         
         [nav pushViewController:postVC animated:YES];
     } else {
-        [nav dismissViewControllerAnimated:YES completion:nil];
+        
+        if (isPhone) {
+            [nav dismissViewControllerAnimated:YES completion:nil];
+        } else {  // dismiss popover if a controller dismisses without an image
+            [self.cameraPopover dismissPopoverAnimated:YES];
+            self.cameraPopover = nil;
+            [self.longpressPopover dismissPopoverAnimated:YES];
+            self.longpressPopover = nil;
+        }
     }
 }
 
@@ -145,6 +172,19 @@
 - (void) imageLibraryViewController:(ImageLibraryViewController *)imageLibraryViewController didCompleteWithImage:(UIImage *)image {
         
     [self handleImage:image withNavigationController:imageLibraryViewController.navigationController];
+}
+
+#pragma mark - Popover Handling
+
+- (void) imageDidFinish:(NSNotification *)notification {
+    if (isPhone) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    } else { // after image sent to Instagram, we need to dismiss the popover
+        [self.cameraPopover dismissPopoverAnimated:YES];
+        self.cameraPopover = nil;
+        [self.longpressPopover dismissPopoverAnimated:YES];
+        self.longpressPopover = nil;
+    }
 }
 
 #pragma mark - Table view data source
@@ -228,8 +268,15 @@
     self.lastTappedImageView = imageView;
     MediaFullScreenViewController *fullScreenVC = [[MediaFullScreenViewController alloc] initWithMedia:cell.mediaItem];
     
-    fullScreenVC.transitioningDelegate = self;
-    fullScreenVC.modalPresentationStyle = UIModalPresentationCustom;
+//    fullScreenVC.transitioningDelegate = self;
+//    fullScreenVC.modalPresentationStyle = UIModalPresentationCustom;
+    
+    if (isPhone) {
+        fullScreenVC.transitioningDelegate = self;
+        fullScreenVC.modalPresentationStyle = UIModalPresentationCustom;
+    } else {
+        fullScreenVC.modalPresentationStyle = UIModalPresentationFormSheet;
+    }
     
     [self presentViewController:fullScreenVC animated:YES completion:nil];
 }
@@ -245,9 +292,20 @@
         [itemsToShare addObject:cell.mediaItem.image];
     }
     
-    if (itemsToShare.count > 0) {
-        UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
-        [self presentViewController:activityVC animated:YES completion:nil];
+    if (isPhone) {
+        if (itemsToShare.count > 0) {
+            UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
+            [self presentViewController:activityVC animated:YES completion:nil];
+            
+        } else {
+            
+            if (itemsToShare.count >0)  {
+                UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
+                self.longpressPopover = [[UIPopoverController alloc]initWithContentViewController:activityVC];
+                self.longpressPopover.popoverContentSize = CGSizeMake(320, 568);
+                [self.longpressPopover presentPopoverFromRect:self.view.frame inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+            }
+        }
     }
 }
 
@@ -271,7 +329,6 @@
 #pragma mark - UIViewControllerTransitioningDelegate
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented
-
     presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
     
     MediaFullScreenAnimator *animator = [MediaFullScreenAnimator new];
@@ -430,12 +487,12 @@
 
 // Assignment - Another delegate
 - (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    [self infiniteScrollIfNecessary];
+//    [self infiniteScrollIfNecessary];
 }
 
 // Another delegate
 - (void) scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
-    [self infiniteScrollIfNecessary];
+//    [self infiniteScrollIfNecessary];
 }
 
 /*

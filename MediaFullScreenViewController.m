@@ -14,6 +14,7 @@
 @property (nonatomic, strong) UITapGestureRecognizer *tap;
 @property (nonatomic, strong) UITapGestureRecognizer *doubleTap;
 @property (nonatomic, weak) UIButton *shareButton;
+@property (nonatomic, strong) UITapGestureRecognizer *tapBehind;
 
 - (void) buttonPressed:(UIButton *)sender;
 
@@ -65,6 +66,11 @@
     self.doubleTap.numberOfTapsRequired = 2; //allows gesture recognizer to require >1 tap to fire
     
     [self.tap requireGestureRecognizerToFail:self.doubleTap]; // so wait for second tap
+    
+    if (isPhone == NO) {  // conditional instantiate
+        self.tapBehind = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapBehindFired:)];
+        self.tapBehind.cancelsTouchesInView = NO;
+    }
     
     [self.scrollView addGestureRecognizer:self.tap];
     [self.scrollView addGestureRecognizer:self.doubleTap];
@@ -168,8 +174,34 @@
     [super viewWillAppear:animated];
     
     [self centerScrollView]; // make sure image starts out centered
+    
+    if (isPhone == NO) { // add gesture recognizer to window
+        [[[[UIApplication sharedApplication] delegate] window] addGestureRecognizer:self.tapBehind];
+    }
 }
 
+- (void) viewWillDisappear:(BOOL)animated { // remove gesture recognizer to window
+    [super viewWillDisappear:animated];
+    
+    if (isPhone == NO) {
+        [[[[UIApplication sharedApplication] delegate] window] removeGestureRecognizer:self.tapBehind];
+    }
+}
+
+- (void) tapBehindFired:(UITapGestureRecognizer *)sender {
+    if (sender.state == UIGestureRecognizerStateEnded) {
+        CGPoint location = [sender locationInView:nil]; // Passing nil gives us coordinates in the window
+        CGPoint locationInVC = [self.presentedViewController.view convertPoint:location fromView:self.view.window];
+        
+        if ([self.presentedViewController.view pointInside:locationInVC withEvent:nil] == NO) {
+            // The tap was outside the VC's view
+            
+            if (self.presentingViewController) {
+                [self dismissViewControllerAnimated:YES completion:nil];
+            }
+        }
+    }
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
